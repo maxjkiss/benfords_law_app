@@ -19,4 +19,8 @@ This is a Flask web application that checks if a dataset follows Benford's Law.
 
    ```python3 app.py```
 
+## Usage
+
+In the Upload Data form, submit and upload a file to be evaluated. The program will generate a pie chart of the distribution of initial digits for the data set, and assert whether it follows Benford's Law.
+
 ## Running Tests
