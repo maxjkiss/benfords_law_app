@@ -1,0 +1,22 @@
+# Benford's Law Application
+
+This is a Flask web application that checks if a dataset follows Benford's Law.
+
+## Installation and Launch
+
+1. Clone the repository:
+
+   ```git clone https://github.com/maxjkiss/benfords_law_app.git```
+2. Navigate to the project directory:
+
+   ```cd benfords_law_app```
+  
+3. Install the requirements:
+
+   ```pip3 install -r requirements.txt```
+  
+4. Launch the application:
+
+   ```python3 app.py```
+
+## Running Tests
