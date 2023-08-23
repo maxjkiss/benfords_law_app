@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Benford's Law Results</title>
+</head>
+
+<body>
+    <h1>Results</h1>
+    <table>
+        <tr>
+            <th>Digit</th>
+            <th>Frequency</th>
+        </tr>
+        {% for digit, frequency in results.items() %}
+        <tr>
+            <td>{{ digit }}</td>
+            <td>{{ frequency }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload CSV File</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<body>
+    <h1>Upload your CSV file</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    <div id="chart"></div>
+    <script>
+        // Get the data from your Flask application
+        var data = JSON.parse('{{ results| tojson | safe }}');
+        console.log(data);  // Print the data to the console
+        // Create a scale for the y-axis
+        var y = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) { return d.frequency; })])
+            .range([0, 420]);
+        // Create the chart
+        d3.select("#chart")
+            .selectAll("div")
+            .data(data)
+            .enter().append("div")
+            .style("width", function (d) { return y(d.frequency) + "px"; })
+            .text(function (d) { return d.digit; });
+    </script>
+</body>
+
+</html>

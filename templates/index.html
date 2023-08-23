@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Head section of the HTML document -->
+<head>
+    <!-- Title of the webpage -->
+    <title>Benford's Law Analysis</title>
+    <!-- Link to the CSS stylesheet -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Importing D3.js library -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<!-- Body section of the HTML document -->
+<body>
+    <!-- Main heading of the webpage -->
+    <h1>Benford's Law Analysis</h1>
+    <!-- Main content of the webpage -->
+    <div class="content">
+        <div class="flex-container">
+            <!-- Section for uploading data -->
+            <div class="flex-item">
+                <h2 class="section-title">Upload Data</h2>
+                <!-- Form for uploading data -->
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="file" name="file">
+                    <input type="submit" value="Upload">
+                </form>
+                <!-- Conditional rendering based on the results -->
+                {% if results is not none %}
+                    {% if follows_benford %}
+                    <p class="result-text">The data follows Benford's Law. For this data set, the frequency of 1 as the leading digit is
+                        <span style="color: green;">{{ frequency_of_one }}%</span>.</p>
+                    {% else %}
+                    <p class="result-text">The data does not follow Benford's Law. For this data set, the frequency of 1 as the leading
+                        digit is <span style="color: red;">{{ frequency_of_one }}%</span>.</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <!-- Section for displaying the frequency of the first digit -->
+            <div class="flex-item">
+                <h2 class="section-title">First Digit Frequency</h2>
+                <div class="aspect-ratio">
+                    <div id="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for creating the pie chart -->
+    <script>
+        // Parsing the results into JSON
+        var data = JSON.parse('{{ results| tojson | safe }}');
+        // Setting the dimensions of the chart
+        var width = 500;
+        var height = 500;
+        var radius = Math.min(width, height) / 2;
+        // Setting the color scale
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
+        // Creating the SVG element
+        var svg = d3.select('#chart')
+            .append('svg')
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .attr('viewBox', '0 0 ' + width + ' ' + height)
+            .append('g')
+            .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
+        // Creating the arc generator
+        var arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+        // Creating the pie generator
+        var pie = d3.pie()
+            .value(function (d) { return d.frequency; })
+            .sort(null);
+        // Creating the paths for the pie chart
+        var path = svg.selectAll('path')
+            .data(pie(data))
+            .enter()
+            .append('path')
+            .attr('d', arc)
+            .attr('fill', function (d, i) { return color(d.data.digit); });
+
+        // Adding labels to the pie chart
+        var labelArc = d3.arc()
+            .outerRadius(radius - 40)
+            .innerRadius(radius - 40);
+        svg.selectAll('text')
+            .data(pie(data))
+            .enter()
+            .append('text')
+            .attr('transform', function (d) { return 'translate(' + labelArc.centroid(d) + ')'; })
+            .attr('dy', '.35em')
+            .style('fill', 'white')
+            .style('font-size', '20px')
+            .text(function (d) { return d.data.digit; });
+
+        // Adding tooltip to show percentages on hover
+        var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+        path.on("mousemove", function (d) {
+            tooltip
+                .style("left", d3.event.pageX + 10 + "px")
+                .style("top", d3.event.pageY - 25 + "px")
+                .style("display", "inline-block")
+                .html((d.data.digit) + "<br>" + (d.data.frequency * 100).toFixed(2) + "%");
+        })
+            .on("mouseout", function (d) { tooltip.style("display", "none"); });
+    </script>
+</body>
+
+</html>
