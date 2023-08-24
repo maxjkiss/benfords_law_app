@@ -11,8 +11,8 @@
     <ul>
         {% for result in results %}
         <li>
-            <a href="#" data-chart='{{ result.data | tojson | safe }}' onclick="drawChart(this, '{{ result.id }}')">{{
-                result.file.filename }} - {{ result.column_name }}</a>
+            <a href="#" data-chart='{{ result.data | tojson | safe }}' data-benford='{{ result.benford }}'
+                onclick="drawChart(this, '{{ result.id }}')">{{ result.file.filename }} - {{ result.column_name }}</a>
         </li>
         {% endfor %}
     </ul>
@@ -33,6 +33,16 @@
                 .attr('viewBox', '0 0 ' + width + ' ' + height)
                 .append('g')
                 .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
+
+            // Add a title to the pie chart
+            svg.append("text")
+                .attr("x", (width / 2))
+                .attr("y", 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("text-decoration", "underline")
+                .text("Pie Chart Title");
+
             var arc = d3.arc()
                 .innerRadius(0)
                 .outerRadius(radius);
@@ -63,6 +73,15 @@
                 .style('fill', 'white')
                 .style('font-size', '20px')
                 .text(function (d) { return d.data.digit; });
+
+            // Add text whether it passes Benford's law
+            svg.append("text")
+                .attr("x", (width / 2))
+                .attr("y", height - 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("Passes Benford's law: " + element.getAttribute('data-benford'));
+
             var tooltip = d3.select("body").append("div").attr("class", "toolTip");
             path.on("mousemove", function (d) {
                 tooltip

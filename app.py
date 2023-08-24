@@ -26,10 +26,14 @@ class Result(db.Model):
     file = relationship('File')  # Add this line
     data = db.Column(db.Text, nullable=False)  # Store the data used to generate the pie chart
     column_name = db.Column(db.String(80), nullable=False)
+    benford = db.Column(db.Boolean, nullable=False)  # Store the Benford's law result
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     results = None
+    follows_benford = False
+    frequency_of_one = None
+
     if request.method == 'POST':
         file = request.files['file']
         if file:
@@ -57,11 +61,18 @@ def home():
                     df_column = df[column]
                     results = benford_law(df_column)
 
-                    result_record = Result(file_id=file_record.id, data=json.dumps(results), column_name=column)
+                    # Get frequency of digit 1
+                    for result in results:
+                        if result['digit'] == '1':
+                            frequency_of_one = result['frequency']
+                            break
+
+                    follows_benford = follows_benford_law(results)
+                    result_record = Result(file_id=file_record.id, data=json.dumps(results), column_name=column, benford=follows_benford)
                     db.session.add(result_record)
                     db.session.commit()
 
-    return render_template('index.html', results=results)
+    return render_template('index.html', results=results, follows_benford=follows_benford, frequency_of_one=frequency_of_one)
 
 @app.route('/results')
 def results():
