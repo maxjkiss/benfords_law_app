@@ -35,10 +35,11 @@
                     <input type="submit" value="Upload">
                 </form>
                 <!-- Conditional rendering based on the results -->
-                {% if results is not none %}
+                {% if results %}
                     {% if follows_benford %}
                     <p class="result-text">The data follows Benford's Law. For this data set, the frequency of 1 as the leading digit is
-                        <span style="color: green;">{{ frequency_of_one }}%</span>.</p>
+                        <span style="color: green;">{{ frequency_of_one }}%</span>.
+                    </p>
                     {% else %}
                     <p class="result-text">The data does not follow Benford's Law. For this data set, the frequency of 1 as the leading
                         digit is <span style="color: red;">{{ frequency_of_one }}%</span>.</p>
@@ -49,7 +50,11 @@
             <div class="flex-item">
                 <h2 class="section-title">First Digit Frequency</h2>
                 <div class="aspect-ratio">
+                    {% if results %}
                     <div id="chart"></div>
+                    {% else %}
+                    <p>No data</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
