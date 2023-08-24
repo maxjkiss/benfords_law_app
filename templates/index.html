@@ -34,6 +34,7 @@
                     </div>
                     <input type="submit" value="Upload">
                 </form>
+                <a href="{{ url_for('results') }}">Show previous results</a>
                 <!-- Conditional rendering based on the results -->
                 {% if results %}
                     {% if follows_benford %}
