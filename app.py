@@ -1,63 +1,86 @@
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import relationship
 import pandas as pd
 import os
 from werkzeug.utils import secure_filename
 from benford import benford_law, follows_benford_law
+from datetime import datetime
+import json
 
-# Initialize Flask app
+# Initialize Flask app and database
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'  # Use SQLite for simplicity
+db = SQLAlchemy(app)
 
-# Define route for home page
+# Define database models
+class File(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(80), unique=True, nullable=False)
+    upload_time = db.Column(db.DateTime, nullable=False)
+
+class Result(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    file = relationship('File')  # Add this line
+    data = db.Column(db.Text, nullable=False)  # Store the data used to generate the pie chart
+    column_name = db.Column(db.String(80), nullable=False)
+    benford = db.Column(db.Boolean, nullable=False)  # Store the Benford's law result
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    # Initialize variables
-    results = []
+    results = None
     follows_benford = False
     frequency_of_one = None
 
-    # Handle POST request
     if request.method == 'POST':
-        # Check if file is in request
-        if 'file' not in request.files:
-            return redirect(request.url)
         file = request.files['file']
-
-        # Check if filename is empty
-        if file.filename == '':
-            return redirect(request.url)
-
-        # Process file if it exists
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-            # Check if file is a .txt file
+            existing_file = File.query.filter_by(filename=filename).first()
+            if existing_file is not None:
+                existing_file.upload_time = datetime.utcnow()
+                db.session.commit()
+                file_record = existing_file
+            else:
+                file_record = File(filename=filename, upload_time=datetime.utcnow())
+                db.session.add(file_record)
+                db.session.commit()
+
             if filename.endswith('.txt'):
                 df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename), sep='\t')
             else:
                 return "Unsupported file format. Please upload a .txt file."
 
-            # Check if target columns exist in dataframe
-            target_columns = request.form['target_columns'].split(',')  # Get target columns from form data
+            target_columns = request.form['target_columns'].split(',')
             if set(target_columns).issubset(df.columns):
-                df = df[target_columns]
-                results = benford_law(df)
+                for column in target_columns:
+                    df_column = df[column]
+                    results = benford_law(df_column)
 
-                # Get frequency of digit 1
-                for result in results:
-                    if result['digit'] == '1':
-                        frequency_of_one = result['frequency']
-                        break
-            else:
-                return "The target column(s) does not exist in the uploaded file."    
+                    # Get frequency of digit 1
+                    for result in results:
+                        if result['digit'] == '1':
+                            frequency_of_one = result['frequency']
+                            break
 
-        # Check if data follows Benford's Law
-        follows_benford = follows_benford_law(results)
+                    follows_benford = follows_benford_law(results)
+                    result_record = Result(file_id=file_record.id, data=json.dumps(results), column_name=column, benford=follows_benford)
+                    db.session.add(result_record)
+                    db.session.commit()
 
-    # Render template with results
     return render_template('index.html', results=results, follows_benford=follows_benford, frequency_of_one=frequency_of_one)
 
-# Run app in debug mode
+@app.route('/results')
+def results():
+    results = Result.query.all()
+    files = File.query.all()
+    return render_template('results.html', results=results, files=files)
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
