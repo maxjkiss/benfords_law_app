@@ -2,46 +2,91 @@
 <html>
 
 <head>
+    <!-- Title of the page -->
     <title>Results</title>
+    <!-- Importing D3.js library -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* Tooltip styling */
+        .toolTip {
+            position: absolute;
+            display: none;
+            min-width: 80px;
+            height: auto;
+            background: none repeat scroll 0 0 #ffffff;
+            border: 1px solid #6F257F;
+            padding: 14px;
+            text-align: center;
+        }
+        /* Home button styling */
+        .home-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        /* Home button link styling */
+        .home-button a {
+            font-weight: bold;
+            color: #000;
+            background-color: #fff;
+            padding: 10px;
+            text-decoration: none;
+            font-size: 2em; /* Adjust this to match the size of the "Results" header */
+            font-family: Arial, sans-serif; /* Adjust this to match the font of the "Results" header */
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Page header -->
     <h1>Results</h1>
+    <!-- Home button -->
+    <div class="home-button">
+        <a href="/">Back</a>
+    </div>
+    <!-- List of results -->
     <ul>
         {% for result in results %}
         <li>
+            <!-- Link to draw chart for each result -->
             <a href="#" data-chart='{{ result.data | tojson | safe }}' data-benford='{{ result.benford }}'
-                onclick="drawChart(this, '{{ result.id }}')">{{ result.file.filename }} - {{ result.column_name }}</a>
+                data-column='{{ result.column_name }}' onclick="drawChart(this, '{{ result.id }}')">{{
+                result.file.filename }} - {{ result.column_name }}</a>
         </li>
         {% endfor %}
     </ul>
 
+    <!-- Container for the chart -->
     <div id="chart"></div>
 
     <script>
+        /* Function to draw chart for a result */
         function drawChart(element, id) {
             d3.select("#chart svg").remove(); // Clear the previous chart
+            console.log(element)
             var data = JSON.parse(JSON.parse(element.getAttribute('data-chart')));
             var width = 960; // Use the same value as in index.html
             var height = 500; // Use the same value as in index.html
             var radius = Math.min(width, height) / 2; // This determines the radius of the pie chart
             var color = d3.scaleOrdinal(d3.schemeCategory10);
+
             var svg = d3.select('#chart')
                 .append('svg')
                 .attr('preserveAspectRatio', 'xMidYMid meet')
-                .attr('viewBox', '0 0 ' + width + ' ' + height)
+                .attr('viewBox', '0 0 ' + width + ' ' + (height + 50))
                 .append('g')
-                .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
+                .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2 + 30) + ')');
 
             // Add a title to the pie chart
             svg.append("text")
-                .attr("x", (width / 2))
-                .attr("y", 20)
+                .attr("class", "title")  // Add a class to the title
+                .attr("x", 0)
+                .attr("y", 0 - (height / 2 + 10))
                 .attr("text-anchor", "middle")
                 .style("font-size", "16px")
-                .style("text-decoration", "underline")
-                .text("Pie Chart Title");
+                .text(element.getAttribute('data-column') + " (" +
+                    (element.getAttribute('data-benford') === 'True' ? "Passes" : "Does Not Pass") +
+                    " Benford's Law)");  // Use the column name as the title and append Benford's law result
 
             var arc = d3.arc()
                 .innerRadius(0)
@@ -49,40 +94,34 @@
             var pie = d3.pie()
                 .value(function (d) { return d.frequency; }) // specify how to extract the numbers
                 .sort(null);
-            var path = svg.selectAll('path')
-                .data(pie(data));
-
-            // Remove old paths
-            path.exit().remove();
 
             // Add new paths
-            path.enter()
+            var path = svg.selectAll('.path')
+                .data(pie(data))
+                .enter()
                 .append('path')
+                .attr('class', 'path')  // Add a class to the paths
                 .attr('d', arc)
                 .attr('fill', function (d, i) { return color(d.data.digit); });
 
             var labelArc = d3.arc()
                 .outerRadius(radius - 40)
                 .innerRadius(radius - 40);
-            svg.selectAll('text')
+
+            // Add pie chart labels
+            svg.selectAll('.label')  // Use a class to select only the labels
                 .data(pie(data))
                 .enter()
                 .append('text')
+                .attr('class', 'label')  // Add a class to the labels
                 .attr('transform', function (d) { return 'translate(' + labelArc.centroid(d) + ')'; })
                 .attr('dy', '.35em')
                 .style('fill', 'white')
                 .style('font-size', '20px')
                 .text(function (d) { return d.data.digit; });
 
-            // Add text whether it passes Benford's law
-            svg.append("text")
-                .attr("x", (width / 2))
-                .attr("y", height - 20)
-                .attr("text-anchor", "middle")
-                .style("font-size", "16px")
-                .text("Passes Benford's law: " + element.getAttribute('data-benford'));
-
             var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
             path.on("mousemove", function (d) {
                 tooltip
                     .style("left", d3.event.pageX + 10 + "px")

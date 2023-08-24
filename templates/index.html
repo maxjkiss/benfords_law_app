@@ -24,24 +24,30 @@
                 <!-- Form for uploading data -->
                 <form method="POST" enctype="multipart/form-data">
                     <div class="form-group">
+                        <!-- Label and input field for file upload -->
                         <label for="file">Upload File:</label>
                         <input type="file" id="file" name="file" accept=".csv,.txt">
                     </div>
                     <div class="form-group">
+                        <!-- Label and input field for target column -->
                         <label for="target_columns">Target Column:</label>
                         <input type="text" id="target_columns" name="target_columns"
                             placeholder="Enter target column">
                     </div>
+                    <!-- Submit button for the form -->
                     <input type="submit" value="Upload">
                 </form>
+                <!-- Link to view previous results -->
                 <a href="{{ url_for('results') }}">Show previous results</a>
                 <!-- Conditional rendering based on the results -->
                 {% if results %}
                     {% if follows_benford %}
+                    <!-- Display result if data follows Benford's Law -->
                     <p class="result-text">The data follows Benford's Law. For this data set, the frequency of 1 as the leading digit is
                         <span style="color: green;">{{ frequency_of_one }}%</span>.
                     </p>
                     {% else %}
+                    <!-- Display result if data does not follow Benford's Law -->
                     <p class="result-text">The data does not follow Benford's Law. For this data set, the frequency of 1 as the leading
                         digit is <span style="color: red;">{{ frequency_of_one }}%</span>.</p>
                     {% endif %}
@@ -52,8 +58,10 @@
                 <h2 class="section-title">First Digit Frequency</h2>
                 <div class="aspect-ratio">
                     {% if results %}
+                    <!-- Container for the chart -->
                     <div id="chart"></div>
                     {% else %}
+                    <!-- Display message if no data is available -->
                     <p>No data</p>
                     {% endif %}
                 </div>
