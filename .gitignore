@@ -1,0 +1,11 @@
+# IDE Stuff
+.vscode/
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Test files
+census_2009.txt
+gen_file.py

@@ -39,7 +39,7 @@ def home():
                 return "Unsupported file format. Please upload a .txt file."
 
             # Check if target columns exist in dataframe
-            target_columns = ['7_2009']
+            target_columns = request.form['target_columns'].split(',')  # Get target columns from form data
             if set(target_columns).issubset(df.columns):
                 df = df[target_columns]
                 results = benford_law(df)
