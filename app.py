@@ -58,13 +58,16 @@ def home():
 
             # Handle .txt files
             if filename.endswith('.txt'):
-                df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename), sep='\t')
-            else:
-                return "Unsupported file format. Please upload a .txt file."
+                try:
+                    df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename), sep='\t')
+                except Exception as e:
+                    return f"Error reading file: {str(e)}"
 
-            # Process target columns
-            target_columns = request.form['target_columns'].split(',')
-            if set(target_columns).issubset(df.columns):
+                # Process target columns
+                target_columns = request.form['target_columns'].split(',')
+                if not set(target_columns).issubset(df.columns):
+                    return "One or more target columns do not exist in the data."
+
                 for column in target_columns:
                     df_column = df[column]
                     results = benford_law(df_column)
@@ -73,7 +76,6 @@ def home():
                     for result in results:
                         if result['digit'] == '1':
                             frequency_of_one = result['frequency']
-                            break
 
                     # Check if data follows Benford's law
                     follows_benford = follows_benford_law(results)
