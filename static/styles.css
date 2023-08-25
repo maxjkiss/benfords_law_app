@@ -46,6 +46,13 @@ input[type="submit"]:hover {
     background-color: #45a049;
 }
 
+/* Styles for the main text */
+.subtext {
+    margin-left: 20%;
+    margin-right: 20%;
+    text-align: justify;
+}
+
 /* Styles for the tooltip */
 .toolTip {
     position: absolute;
