@@ -8,4 +8,5 @@ __pycache__/
 
 # Test files
 census_2009.txt
+mixed_benford_census_2009.txt
 gen_file.py
