@@ -40,7 +40,7 @@ This will start your Flask application inside a Docker container and it will be 
 
 ## Usage
 
-In the Upload Data form, submit and upload a file to be evaluated. The program will generate a pie chart of the distribution of initial digits for the data set, and assert whether it follows Benford's Law. For this example, we have given a tolerance of ±2% frequency to determine if 1 is the leading digit "about 30% of the time".  Historical uploads will be logged and are accessible from the results page.
+In the Upload Data form, submit a file to be evaluated. Enter the column to be evaluated in the text box, then press the "upload" button. The program will generate a pie chart of the distribution of initial digits for the data set, and assert whether it follows Benford's Law. For this example, we have given a tolerance of ±2% frequency to determine if 1 is the leading digit "about 30% of the time".  Historical uploads will be logged and are accessible from the results page.
 
 ## Running Tests
 
